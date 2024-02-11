@@ -5,7 +5,7 @@
 const { run } = require("hardhat");
 
 const verify = async (contractAddress, args) => {
-    console.log("Verifying contract...");
+    console.log("Verifying the contract...");
     try {
         await run("verify:verify", {
             // verify is a task in hardhat
