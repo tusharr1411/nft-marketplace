@@ -15,6 +15,9 @@ error NftMarketPlace__PriceMustBeAboveZero();
 error NftMarketPlace__NotApprovedForMarketplace();
 error NftMarketPlace__AlreadyListed(address nftAddress, uint256 tokenId);
 error NftMarketPlace__NotOwner();
+error NftMarketPlace__NotListed(address nftAddress, uint256 tokenId);
+error NftMarketPlace__PriceNotMet(address nftAddress, uint256 tokenId, uint256 price);
+
 
 contract NftMarketPlace {
     //---------------------  Type Declaration  ---------------------//
@@ -31,8 +34,19 @@ contract NftMarketPlace {
         uint256 price
     );
 
+    event ItemBought(
+        address indexed buyer,
+        address indexed nftAddress,
+        uint256 indexed tokenId,
+        uint256 price
+    );
+
+
+
+
     //---------------------  Global Variables  ---------------------//
     mapping(address => mapping(uint256 => Listing)) private s_listings;
+    mapping(address => uint256) private s_proceeds;// seller->earned
 
     //-----------------------  Constructor   -----------------------//
     constructor() {}
@@ -65,14 +79,29 @@ contract NftMarketPlace {
         _;
     }
 
+    modifier isListed(address nftAddress, uint256 tokenId) {
+        Listing memory listing = s_listings[nftAddress][tokenId];
+        if (listing.price <= 0) {
+            revert NftMarketPlace__NotListed(nftAddress, tokenId);
+        }
+        _;
+    }
+
     //----------------------  Main Functions  ----------------------//
+
     /*
-    
-    */
+     * @notice method for listing your NFT on the marketplace
+     * @param nftAddress: Address of the NFT
+     * @param tokenId: token Id of the NFT
+     * @param price: sale price of the listed NFT
+     * @dev Technically, we could have the contract be the escrow for the NFTs
+     * but this way people can still hold their NFTs when listed
+     */
     function listItem(
         address nftAddress,
         uint256 tokenId,
         uint256 price
+        // address tokenPrice  // to sell in different coins
     )
         external
         notListed(nftAddress, tokenId, msg.sender)
@@ -89,5 +118,28 @@ contract NftMarketPlace {
         }
         s_listings[nftAddress][tokenId] = Listing(price, msg.sender);
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
+    }
+
+    function buyItem(address nftAddress,uint256 tokenId) 
+        external 
+        payable 
+        isListed(nftAddress, tokenId)
+    {
+        Listing memory listedItem = s_listings[nftAddress][tokenId];
+        if(msg.value < listedItem.price){
+            revert NftMarketPlace__PriceNotMet(nftAddress, tokenId,listedItem.price);
+        }
+        s_proceeds[listedItem.seller]+=msg.value;
+        // Not sending the to the seller instead 've created an array to record that how much a seller can pull(withdraw) from this contract
+        // By doing this we are shifting the risk associated with transferring ether to the SELLER
+        // https://fravoll.github.io/solidity-patterns/pull_over_push.html
+
+        delete (s_listings[nftAddress][tokenId]); // delete the listing after being sold
+        IERC721(nftAddress).safeTransferFrom(listedItem.seller, msg.sender, tokenId);
+
+        // check to make sure the NFT was transferred 
+
+        emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
+
     }
 }
