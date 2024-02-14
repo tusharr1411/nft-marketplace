@@ -3,6 +3,7 @@
 pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 //ListItems: list NFTs on marketplace
 //buyItem
@@ -19,7 +20,7 @@ error NftMarketPlace__NotListed(address nftAddress, uint256 tokenId);
 error NftMarketPlace__PriceNotMet(address nftAddress, uint256 tokenId, uint256 price);
 
 
-contract NftMarketPlace {
+contract NftMarketPlace is ReentrancyGuard{
     //---------------------  Type Declaration  ---------------------//
     struct Listing {
         uint256 price; //price of NFT
@@ -124,13 +125,14 @@ contract NftMarketPlace {
         external 
         payable 
         isListed(nftAddress, tokenId)
+        nonReentrant
     {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
         if(msg.value < listedItem.price){
             revert NftMarketPlace__PriceNotMet(nftAddress, tokenId,listedItem.price);
         }
         s_proceeds[listedItem.seller]+=msg.value;
-        // Not sending the to the seller instead 've created an array to record that how much a seller can pull(withdraw) from this contract
+        // Not sending the to the seller instead we've created an array to record that how much a seller can pull(withdraw) from this contract
         // By doing this we are shifting the risk associated with transferring ether to the SELLER
         // https://fravoll.github.io/solidity-patterns/pull_over_push.html
 
