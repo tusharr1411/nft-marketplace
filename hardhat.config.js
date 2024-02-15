@@ -1,5 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox")//
 require("dotenv").config()
+require("hardhat-deploy")
+
 
 /** @type import('hardhat/config').HardhatUserConfig */
 
@@ -62,6 +64,7 @@ module.exports = {
             //   mnemonic:MNEMONIC,
             // },
             saveDeployments: true,
+            blockConfirmations: 6,
         },
         rinkeby: {
             url: MAINNET_RPC_URL,
@@ -71,6 +74,7 @@ module.exports = {
             //   mnemonic:MNEMONIC,
             // },
             saveDeployments: true,
+            blockConfirmations: 6,
         },
         mainnet: {
             url: MAINNET_RPC_URL,
