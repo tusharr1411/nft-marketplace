@@ -6,13 +6,13 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy, log } = deployments;
     const { deployer } = await getNamedAccounts();
 
-    let args = [];
+    const args = [];
 
-    const nftMarketplace = await deploy("NftMarketPlace", {
+    const basicNft = await deploy("BasicNFT", {
         from: deployer,
         args: args,
         log: true,
-        waitConfirmations: network.config.waitConfirmations || 1,
+        waitConfirmations: network.config.blockConfirmations || 1,
     });
 
     //verify the deployed contract if not on development chains(not on hardhat or ganache)
@@ -23,4 +23,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log("----------------------------------------------------");
 };
 
-module.exports.tags = ["all", "nftMarketplace"];
+module.exports.tags = ["all", "basicNft"];
