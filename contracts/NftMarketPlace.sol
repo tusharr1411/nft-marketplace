@@ -18,16 +18,21 @@ error NftMarketPlace__AlreadyListed(address nftAddress, uint256 tokenId);
 error NftMarketPlace__NotOwner();
 error NftMarketPlace__NotListed(address nftAddress, uint256 tokenId);
 error NftMarketPlace__PriceNotMet(address nftAddress, uint256 tokenId, uint256 price);
+error NftMarketPlace__NoProceeds();
+error NftMarketPlace__TransferFailed();
 
-
-contract NftMarketPlace is ReentrancyGuard{
+contract NftMarketPlace is ReentrancyGuard {
+    //--------------------------------------------------------------//
     //---------------------  Type Declaration  ---------------------//
+    //--------------------------------------------------------------//
     struct Listing {
         uint256 price; //price of NFT
         address seller; // owner of that NFT
     }
 
+    //--------------------------------------------------------------//
     //--------------------------  Events  --------------------------//
+    //--------------------------------------------------------------//
     event ItemListed(
         address indexed seller,
         address indexed nftAddress,
@@ -42,17 +47,27 @@ contract NftMarketPlace is ReentrancyGuard{
         uint256 price
     );
 
+    event ItemCanceled(
+        address indexed seller,
+        address indexed nftAddress,
+        uint256 indexed tokenId
+    );
 
-
-
+    //--------------------------------------------------------------//
     //---------------------  Global Variables  ---------------------//
+    //--------------------------------------------------------------//
     mapping(address => mapping(uint256 => Listing)) private s_listings;
-    mapping(address => uint256) private s_proceeds;// seller->earned
+    mapping(address => uint256) private s_proceeds; // seller->earned
 
+    //--------------------------------------------------------------//
     //-----------------------  Constructor   -----------------------//
+    //--------------------------------------------------------------//
+
     constructor() {}
 
-    //-------------------------  Modifier  -------------------------//
+    //--------------------------------------------------------------//
+    //-------------------------  Modifiers  ------------------------//
+    //--------------------------------------------------------------//
 
     modifier notListed(
         address nftAddress,
@@ -73,7 +88,6 @@ contract NftMarketPlace is ReentrancyGuard{
     ) {
         IERC721 nft = IERC721(nftAddress);
         address owner = nft.ownerOf(tokenId);
-
         if (spender != owner) {
             revert NftMarketPlace__NotOwner();
         }
@@ -88,7 +102,9 @@ contract NftMarketPlace is ReentrancyGuard{
         _;
     }
 
+    //--------------------------------------------------------------//
     //----------------------  Main Functions  ----------------------//
+    //--------------------------------------------------------------//
 
     /*
      * @notice method for listing your NFT on the marketplace
@@ -102,9 +118,9 @@ contract NftMarketPlace is ReentrancyGuard{
         address nftAddress,
         uint256 tokenId,
         uint256 price
-        // address tokenPrice  // to sell in different coins
     )
         external
+        // address tokenPrice  // to sell in different coins
         notListed(nftAddress, tokenId, msg.sender)
         isOwner(nftAddress, tokenId, msg.sender)
     {
@@ -121,17 +137,15 @@ contract NftMarketPlace is ReentrancyGuard{
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
 
-    function buyItem(address nftAddress,uint256 tokenId) 
-        external 
-        payable 
-        isListed(nftAddress, tokenId)
-        nonReentrant
-    {
+    function buyItem(
+        address nftAddress,
+        uint256 tokenId
+    ) external payable isListed(nftAddress, tokenId) nonReentrant {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
-        if(msg.value < listedItem.price){
-            revert NftMarketPlace__PriceNotMet(nftAddress, tokenId,listedItem.price);
+        if (msg.value < listedItem.price) {
+            revert NftMarketPlace__PriceNotMet(nftAddress, tokenId, listedItem.price);
         }
-        s_proceeds[listedItem.seller]+=msg.value;
+        s_proceeds[listedItem.seller] += msg.value;
         // Not sending the to the seller instead we've created an array to record that how much a seller can pull(withdraw) from this contract
         // By doing this we are shifting the risk associated with transferring ether to the SELLER
         // https://fravoll.github.io/solidity-patterns/pull_over_push.html
@@ -139,9 +153,52 @@ contract NftMarketPlace is ReentrancyGuard{
         delete (s_listings[nftAddress][tokenId]); // delete the listing after being sold
         IERC721(nftAddress).safeTransferFrom(listedItem.seller, msg.sender, tokenId);
 
-        // check to make sure the NFT was transferred 
+        // check to make sure the NFT was transferred
 
         emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
+    }
 
+    function cancelListing(
+        address nftAddress,
+        uint256 tokenId
+    ) external isListed(nftAddress, tokenId) isOwner(nftAddress, tokenId, msg.sender) {
+        delete (s_listings[nftAddress][tokenId]);
+        emit ItemCanceled(msg.sender, nftAddress, tokenId);
+    }
+
+    function updateListing(
+        address nftAddress,
+        uint256 tokenId,
+        uint256 newPrice
+    ) external isListed(nftAddress, tokenId) isOwner(nftAddress, tokenId, msg.sender) {
+        s_listings[nftAddress][tokenId].price = newPrice;
+        emit ItemListed(msg.sender, nftAddress, tokenId, newPrice);
+    }
+
+    function withdrawProceeds() external {
+        uint256 proceed = s_proceeds[msg.sender];
+        if (proceed <= 0) {
+            revert NftMarketPlace__NoProceeds();
+        }
+        s_proceeds[msg.sender] = 0;
+        (bool success, ) = payable(msg.sender).call{value: proceed}("");
+        if (!success) {
+            revert NftMarketPlace__TransferFailed();
+        }
+    }
+
+    //--------------------------------------------------------------//
+    //---------------------  Getter Functions  ---------------------//
+    //--------------------------------------------------------------//
+
+    function getListing(
+        address nftAddress,
+        uint256 tokenId
+    ) external view returns (Listing memory) {
+        return s_listings[nftAddress][tokenId];
+    }
+
+    function getProceeds(address seller) external view returns (uint256) {
+        return s_proceeds[seller];
     }
 }
