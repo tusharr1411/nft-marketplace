@@ -22,25 +22,27 @@ const {assert, expact} = require("chai");
         player = accounts[1];
         
         await deployments.fixture(["all"]);
-        
-        nftMarketplace = await ethers.getContract("NftMarketPlace");// ethers.getContract grab whatever the 0th account i.e., deployer
-        console.log("0000000000")
-        // nftMarketplace = await nftMarketplace.connect(player)// player is connected to NFT marketplace
-        basicNft = await ethers.getContract("BasicNFT"); // connected to deployer
-        
-        
-        await basicNft.mintNft()// minted by deployer
-        //The approve function allows an NFT owner to give permission for a specific address to transfer their NFT token on their behalf.
-        await basicNft.approve(nftMarketplace.address, TOKEN_ID)
 
-          
+        
+        nftMarketplace = await ethers.getContractAt((await deployments.get("NftMarketPlace")).abi,(await deployments.get("NftMarketPlace")).address );// ethers.getContract grab whatever the 0th account i.e., deployer
+        // nftMarketplace = await nftMarketplace.connect(player)// player is connected to NFT marketplace
+
+
+        basicNft = await ethers.getContractAt((await deployments.get("BasicNFT")).abi,(await deployments.get("BasicNFT")).address); // connected to deployer
+        
+        
+        await basicNft.mintNFT()// minted by deployer
+        //The approve function allows an NFT owner to give permission for a specific address to transfer their NFT token on their behalf.
+        await basicNft.approve(nftMarketplace.target, TOKEN_ID)
+        
+        
     })
     
     // Test 1: It can be listed:
-    it("lists and can be bought", async()=>{
-        await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE);// deployer listed it
+    it("1. lists and can be bought", async()=>{
+        await nftMarketplace.listItem(basicNft.target, TOKEN_ID, PRICE);// deployer listed it
         const playerConnectedToNftMakrketplace = nftMarketplace.connect(player);
-        await playerConnectedToNftMakrketplace.buyItem(basicNft.address, TOKEN_ID,{value: PRICE});
+        await playerConnectedToNftMakrketplace.buyItem(basicNft.target, TOKEN_ID,{value: PRICE});
 
         const newOwner = await basicNft.ownerOf(TOKEN_ID)// NFTs bult in function
         const deployerProceeds = await nftMarketplace.getProceeds(deployer);
@@ -49,7 +51,6 @@ const {assert, expact} = require("chai");
         assert(deployerProceeds.toString() == PRICE.toString());
 
         // console.log("--------")
-        // console.log(deployer)
         // console.log("--------")
         // console.log(player)
     })
