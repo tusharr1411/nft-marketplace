@@ -2,7 +2,7 @@ const { ethers, deployments } = require("hardhat");
 
 const PRICE = ethers.parseEther("0.2");
 
-async function interactWithMyContract() {
+async function mintAndList() {
     const nftMarketplace = await ethers.getContractAt(
         (await deployments.get("NftMarketPlace")).abi,
         (await deployments.get("NftMarketPlace")).address,
@@ -29,9 +29,9 @@ async function interactWithMyContract() {
     console.log("Listed !");
 }
 
-interactWithMyContract()
+mintAndList()
     .then(() => process.exit(0))
     .catch((error) => {
-        console.error(error);
-        process.exit(1);
+        console.log(error);
+        process.exit(0);
     });
