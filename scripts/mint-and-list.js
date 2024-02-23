@@ -1,4 +1,6 @@
-const { ethers, deployments } = require("hardhat");
+const { ethers, deployments, network } = require("hardhat");
+const { moveBlocks } = require("../utils/move-block");
+
 
 const PRICE = ethers.parseEther("0.2");
 
@@ -27,11 +29,17 @@ async function mintAndList() {
     const listingTx = await nftMarketplace.listItem(basicNft.target, tokenId, PRICE);
     await listingTx.wait(1);
     console.log("Listed !");
+
+
+ 
+    if (network.name == "localhost") {
+        await moveBlocks(2, (sleepAmount = 1000));
+    }
 }
 
 mintAndList()
     .then(() => process.exit(0))
     .catch((error) => {
         console.log(error);
-        process.exit(0);
+        process.exit(1);
     });
