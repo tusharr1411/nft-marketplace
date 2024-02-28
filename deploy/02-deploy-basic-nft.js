@@ -18,7 +18,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     //verify the deployed contract if not on development chains(not on hardhat or ganache)
     if (!DEVELOPMENT_CHAINS.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
         log("Verifying the contract...");
-        await verify(nftMarketplace.address, args);
+        await verify(basicNft.address, args);
     }
     log("----------------------------------------------------");
 };
