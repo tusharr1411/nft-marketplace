@@ -45,7 +45,7 @@ module.exports = {
 
 
     defaultNetwork: "hardhat",
-    network: {
+    networks: {
         hardhat: {
             chainId: 31337,
             // // If you want to do some forking, uncomment this
