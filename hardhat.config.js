@@ -11,7 +11,7 @@ const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
 const MAINNET_PVT_KEY = process.env.MAINNET_PVT_KEY
 
 //sepolia variables
-const SEOPLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
+const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
 const SEOPLIA_PVT_KEY = process.env.SEPOLIA_PVT_KEY
 
 // rinkeby variables
@@ -57,7 +57,7 @@ module.exports = {
             chainId: 31337,
         },
         sepolia: {
-            url: SEOPLIA_RPC_URL,
+            url: SEPOLIA_RPC_URL,
             chainId: 11155111,
             accounts: SEOPLIA_PVT_KEY !== undefined ? [SEOPLIA_PVT_KEY] : [],
             // accounts:{
