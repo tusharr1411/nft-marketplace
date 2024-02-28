@@ -32,7 +32,7 @@ async function mintAndList() {
 
 
  
-    if (network.name == "localhost") {
+    if (network.config.chainId == 31337) {
         await moveBlocks(2, (sleepAmount = 1000));
     }
 }

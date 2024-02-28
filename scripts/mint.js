@@ -15,7 +15,7 @@ async function mint() {
     const tokenId = mintTxReceipt.logs[0].args.tokenId;
     console.log(`Got tokenID: ${tokenId} of NFT Address: ${basicNft.target}`);
 
-    if (network.name == "localhost") {
+    if (network.config.chainId == 31337) {
         await moveBlocks(2, (sleepAmount = 1000));
     }
 }

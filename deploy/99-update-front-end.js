@@ -32,7 +32,6 @@ async function updateContractAddresses() {
         (await deployments.get("NftMarketPlace")).abi,
         (await deployments.get("NftMarketPlace")).address,
     );
-    console.log(network)
 
     const chainId = network.config.chainId.toString();
     const contractAddresses = JSON.parse(fs.readFileSync(forntEndContractsFiles, "utf8"));

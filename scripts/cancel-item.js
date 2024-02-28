@@ -16,7 +16,7 @@ async function cancel() {
     const tx = await nftMarketplace.cancelListing(basicNft.target, TOKEN_ID);
     await tx.wait(1);
     console.log("NFT listing canceled form the marketplace");
-    if ((network.name = "localhost")) {
+    if ((network.config.chainId = 31337)) {
         await moveBlocks(2, (sleepAmount = 1000));
     }
 }
