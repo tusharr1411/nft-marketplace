@@ -1,8 +1,10 @@
 const { ethers, deployments, network } = require("hardhat");
 const fs = require("fs");
 require("dotenv").config();
-const forntEndContractsFiles = "../nft-marketplace-frontend/frontend-moralis/constants/networkMapping.json";
-const frontEndAbiLocation = "../nft-marketplace-frontend/frontend-moralis/constants/";
+// const forntEndContractsFiles = "../nft-marketplace-frontend/frontend-moralis/constants/networkMapping.json";
+// const frontEndAbiLocation = "../nft-marketplace-frontend/frontend-moralis/constants/";
+const forntEndContractsFiles = "../nft-marketplace-frontend/frontend-graph/constants/networkMapping.json";
+const frontEndAbiLocation = "../nft-marketplace-frontend/frontend-graph/constants/";
 
 module.exports = async function () {
     if (process.env.UPDATE_FRONT_END) {
