@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@chainlink/contracts": "^1.1.1",
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
